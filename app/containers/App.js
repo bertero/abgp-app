@@ -1,9 +1,9 @@
 import { AppRegistry, View, ScrollView, StyleSheet, TextInput, Text, TouchableHighlight } from 'react-native'
-
 import React, { Component, PropTypes } from 'react'
 import t                               from 'tcomb-form-native'
 import { connect }                     from 'react-redux'
 import { Actions }                     from 'react-native-router-flux'
+import _                               from 'lodash'
 
 import { actionCreators } from '../redux/todoRedux'
 
@@ -49,7 +49,8 @@ const Pedido = t.struct({
 });
 
 function getPedido(value) {
-  return fetch('http://9276bf57.ngrok.io', {
+  console.log('starting fetch...')
+  return fetch('http://9276bf57.ngrok.io/api/v1', {
       method: 'POST',
       headers: {
         'Accept': 'application/json',
@@ -62,10 +63,11 @@ function getPedido(value) {
     .then((response) => response.json())
     .then((responseJson) => {
       console.log(responseJson)
+      return responseJson
     })
     .catch((error) => {
       console.error(error);
-    });
+    })
 }
 
 class App extends Component {
@@ -73,7 +75,8 @@ class App extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      dataToExibit : {}
+      dataToExibit : {},
+      showResults  : false
     }
 
     this.onPress = this.onPress.bind(this)
@@ -83,24 +86,42 @@ class App extends Component {
     // call getValue() to get the values of the form
     var value = this.refs.form.getValue();
     if (value) { // if validation fails, value will be null
-      console.log(value); // value here is an instance of Pedido
-      getPedido(value)
+      console.log(value) // value here is an instance of Pedido
+      this.setState({dataToExibit : getPedido(value), showResults : true})
     }
   }
 
     render() {
-      return (
-        <View style={styles.container}>
-          <Form
-            ref="form"
-            type={Pedido}
-            options={options}
-          />
-          <TouchableHighlight style={styles.button} onPress={ (event) => { this.onPress(event) }} underlayColor='#99d9f4'>
-            <Text style={styles.buttonText}>Save</Text>
-          </TouchableHighlight>
-        </View>
-      );
+      const { showResults, dataToExibit } = this.state
+
+      if (!showResults) {
+        return (
+          <View style={styles.container}>
+            <Form
+              ref="form"
+              type={Pedido}
+            />
+            <TouchableHighlight style={styles.button} onPress={ (event) => { this.onPress(event) }} underlayColor='#99d9f4'>
+              <Text style={styles.buttonText}>Pesquisar</Text>
+            </TouchableHighlight>
+            <Text>Exemplo de Codigo de Pedido: 5848a0dec95ef6209f7aff02</Text>
+          </View>
+        )
+      } else {
+        return (
+          <View style={styles.container}>
+            <Text>{ 
+              JSON.stringify(dataToExibit, null, 2)
+            //   _(dataToExibit).map((value, key) => {
+            //   return (
+            //           <Text>{ key }:</Text>
+            //           <Text>{ value }</Text>
+            //           )
+            // }) 
+          }</Text>
+          </View>
+        )
+      }      
     }
 }
 
