@@ -15,7 +15,8 @@
     "redux": "^3.6.0",
     "redux-persist": "^3.0.0",
     "redux-thunk": "^2.1.0",
-    "reselect": "^2.5.4"
+    "reselect": "^2.5.4",
+    "tcomb-form-native": "^0.6.1"
   },
   "jest": {
     "preset": "jest-react-native"
