@@ -42,7 +42,6 @@ const mapStateToProps = (state) => ({
   items: state.items,
 })
 
-// here we are: define your domain model
 const Pedido = t.struct({
   email         : t.String,
   codigo_pedido : t.String
@@ -62,11 +61,11 @@ function getPedido(value) {
     })
     .then((response) => response.json())
     .then((responseJson) => {
-      console.log(responseJson)
       return responseJson
     })
     .catch((error) => {
       console.error(error);
+      return error
     })
 }
 
@@ -87,12 +86,21 @@ class App extends Component {
     var value = this.refs.form.getValue();
     if (value) { // if validation fails, value will be null
       console.log(value) // value here is an instance of Pedido
-      this.setState({dataToExibit : getPedido(value), showResults : true})
+      
+      getPedido(value).then(dataToExibit => {
+        if (dataToExibit instanceof Error) 
+          return this.setState({dataToExibit : undefined, showResults : true, error: dataToExibit})
+        this.setState({dataToExibit : dataToExibit, showResults : true})
+      })
     }
   }
 
+  returnHome() {
+    this.setState({dataToExibit : undefined, showResults : false, error : undefined})
+  }
+
     render() {
-      const { showResults, dataToExibit } = this.state
+      const { showResults, dataToExibit, error } = this.state
 
       if (!showResults) {
         return (
@@ -108,19 +116,25 @@ class App extends Component {
           </View>
         )
       } else {
-        return (
-          <View style={styles.container}>
-            <Text>{ 
-              JSON.stringify(dataToExibit, null, 2)
-            //   _(dataToExibit).map((value, key) => {
-            //   return (
-            //           <Text>{ key }:</Text>
-            //           <Text>{ value }</Text>
-            //           )
-            // }) 
-          }</Text>
-          </View>
-        )
+        if (!error) {
+          return (
+            <View style={styles.container}>
+            <Text>{ JSON.stringify(dataToExibit, null, 2).replace(/"/g, '').replace(/}/g, '').replace(/{/g, '') }</Text>
+            <TouchableHighlight style={styles.button} onPress={ () => { this.returnHome() }} underlayColor='#99d9f4'>
+              <Text style={styles.buttonText}>Voltar ao Menu</Text>
+            </TouchableHighlight>
+            </View>
+          )
+        }
+        else {
+          return(
+            <View>
+              <Text>
+                { error.toString() }
+              </Text>
+            </View>
+          )
+        }
       }      
     }
 }
